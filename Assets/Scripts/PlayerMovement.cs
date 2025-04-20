@@ -9,12 +9,14 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
     public float climbSpeed = 3f;
-    public float aniClimbSpeed = 1f;
+    public float basicMultiplier = 1f;
     
     private bool isGrounded;
     public bool isClimbing;
     public bool isHanging;
     public bool sliding;
+    RaycastHit downHit;
+    RaycastHit fwdHit;
 
 
     [Header("Ground Check")]
@@ -30,6 +32,8 @@ public class PlayerMovement : MonoBehaviour
 
     Animator animator;
     [SerializeField] private LayerMask slopeLayer;
+    [SerializeField] private float hangXoffset;
+    [SerializeField] private float hangYoffset;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
@@ -58,6 +62,13 @@ public class PlayerMovement : MonoBehaviour
         Climb();
         AnimationControl();
         Slide();
+        LedgeGrab();
+        if (isGrounded)
+        {
+            isHanging = false;
+        }
+
+        
        
         
     }
@@ -69,6 +80,7 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetBool("touchdown", true);
             animator.SetFloat("motion", Mathf.Abs(moveInput.x));
+            animator.SetBool("falling", false);
         }
         if (!isGrounded)
         {
@@ -80,6 +92,7 @@ public class PlayerMovement : MonoBehaviour
             if(rb.linearVelocity.y < -0.2f)
             {
                 animator.SetBool("falling", true);
+                animator.SetTrigger("fallingT");
             }
         }
        
@@ -87,12 +100,21 @@ public class PlayerMovement : MonoBehaviour
        if (isClimbing)
        {
             animator.SetBool("isClimbing", true);
-            animator.SetFloat("climb", aniClimbSpeed * moveInput.y);
+            animator.SetFloat("climb", 1 * moveInput.y);
        }
        else
        {
             animator.SetBool("isClimbing", false);
        }
+
+        if (isHanging)
+        {
+            animator.SetBool("hanging", true);
+        }
+        else
+        {
+            animator.SetBool("hanging", false);
+        }
 
        //Jump trigger is in the jump method
       
@@ -103,13 +125,27 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded)
         {
             rb.linearVelocity = new Vector3(moveInput.x * moveSpeed, rb.linearVelocity.y);
+            isHanging = false;
         }
        
         if (Mathf.Abs(moveInput.x) > 0.1f && !isClimbing)
         {
-            float targetAngle = moveInput.x > 0 ? 90f : -90f;
+            float targetAngle;
+            if (moveInput.x > 0)
+            {
+                targetAngle = 90f;  // Facing right
+                hangXoffset = hangXoffset;
+                basicMultiplier = 1;
+            }
+            else
+            {
+                targetAngle = -90f; // Facing left
+                hangXoffset = -hangXoffset;
+                basicMultiplier = -1;
+            }
             Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10f); // Adjust rotation speed
+           
         }
     }
 
@@ -122,7 +158,12 @@ public class PlayerMovement : MonoBehaviour
         if (isClimbing)
         {
             rb.AddForce(6 * moveInput.x, jumpForce+(4*jumpForce*moveInput.y) , 0, ForceMode.Impulse);
-           
+        }
+        if (isHanging)
+        {
+            Vector3 targetpos = new Vector3 (fwdHit.point.x+0.2f, downHit.point.y,fwdHit.point.z);
+            transform.position = Vector3.Slerp(transform.position, targetpos, 1f);
+            isHanging = false;
         }
        
         animator.SetTrigger("jump");
@@ -130,6 +171,7 @@ public class PlayerMovement : MonoBehaviour
     void GroundCheck()
     {
         isGrounded = Physics.Raycast(groundCheck.position,-transform.up, groundCheckRadius, groundLayer);
+
     }
     void WallCheck()
     {
@@ -138,7 +180,7 @@ public class PlayerMovement : MonoBehaviour
 
     void gravityControl()
     {
-        if(rb.linearVelocity.y < 0 && !isGrounded)
+        if(rb.linearVelocity.y < 0 && !isGrounded && !isHanging )
         {
             rb.AddForce(0, -10f, 0);
         }
@@ -165,14 +207,12 @@ public class PlayerMovement : MonoBehaviour
     {
         if(rb.linearVelocity.y < 0.1f)
         {
-            RaycastHit downHit;
-            Vector3 lineDownStart = (transform.position + Vector3.up * 1.5f) + transform.forward*0.5f;
-            Vector3 lineDownEnd = (transform.position + Vector3.up * 0.5f) + transform.forward * 0.5f;
+            Vector3 lineDownStart = (transform.position + Vector3.up * 2f) + transform.forward;
+            Vector3 lineDownEnd = (transform.position + Vector3.up * 0.5f) + transform.forward;
             Physics.Linecast(lineDownStart, lineDownEnd, out downHit, groundLayer);
             Debug.DrawLine(lineDownStart, lineDownEnd);
             if (downHit.collider != null)
             {
-                RaycastHit fwdHit;
                 Vector3 linefwdstart = new Vector3(transform.position.x, downHit.point.y - 0.1f, transform.position.z);
                 Vector3 linefwdend = new Vector3(transform.position.x, downHit.point.y - 0.1f, transform.position.z) + transform.forward;
                 Physics.Linecast(linefwdstart, linefwdend, out fwdHit, groundLayer);
@@ -180,14 +220,14 @@ public class PlayerMovement : MonoBehaviour
                 if (fwdHit.collider != null)
                 {
                     rb.useGravity = false;
-                    
+                    Debug.Log("I should be hanging");
                     isHanging = true;
-
-                    Vector3 hangPos = new Vector3(fwdHit.point.x + 0.1f , downHit.point.y+ 1.5f, fwdHit.point.z);
-
-                   
-
+                    Vector3 hangPos = new Vector3(fwdHit.point.x +(hangXoffset) , downHit.point.y+ hangYoffset);
+                    transform.forward = -fwdHit.normal;
+                    transform.position = hangPos;
                 }
+                
+ 
             }
         
         }
