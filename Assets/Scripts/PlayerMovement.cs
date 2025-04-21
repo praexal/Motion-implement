@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using DG.Tweening;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -30,6 +31,13 @@ public class PlayerMovement : MonoBehaviour
 
     Animator animator;
     [SerializeField] private LayerMask slopeLayer;
+<<<<<<< Updated upstream
+=======
+    [SerializeField] private float hangXoffset;
+    [SerializeField] private float hangYoffset;
+    [SerializeField] private float duration;
+    public Ease easeType = Ease.InOutQuad;
+>>>>>>> Stashed changes
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
@@ -122,8 +130,19 @@ public class PlayerMovement : MonoBehaviour
         if (isClimbing)
         {
             rb.AddForce(6 * moveInput.x, jumpForce+(4*jumpForce*moveInput.y) , 0, ForceMode.Impulse);
+<<<<<<< Updated upstream
            
         }
+=======
+        }
+        //if (isHanging)
+        //{
+        //    Vector3 targetpos = new Vector3 (fwdHit.point.x, downHit.point.y + 0.2f,fwdHit.point.z);
+        //    transform.position = Vector3.Lerp(transform.position, targetpos, 2f);
+            
+        //    isHanging = false;
+        //}
+>>>>>>> Stashed changes
        
         animator.SetTrigger("jump");
     }
@@ -138,7 +157,11 @@ public class PlayerMovement : MonoBehaviour
 
     void gravityControl()
     {
+<<<<<<< Updated upstream
         if(rb.linearVelocity.y < 0 && !isGrounded)
+=======
+        if(rb.linearVelocity.y < 0 && !isGrounded && !isHanging&& !isClimbing)
+>>>>>>> Stashed changes
         {
             rb.AddForce(0, -10f, 0);
         }
@@ -165,9 +188,14 @@ public class PlayerMovement : MonoBehaviour
     {
         if(rb.linearVelocity.y < 0.1f)
         {
+<<<<<<< Updated upstream
             RaycastHit downHit;
             Vector3 lineDownStart = (transform.position + Vector3.up * 1.5f) + transform.forward*0.5f;
             Vector3 lineDownEnd = (transform.position + Vector3.up * 0.5f) + transform.forward * 0.5f;
+=======
+            Vector3 lineDownStart = (transform.position + Vector3.up * 3f) + transform.forward*0.4f;
+            Vector3 lineDownEnd = (transform.position + Vector3.up * 0.5f) + transform.forward*0.4f;
+>>>>>>> Stashed changes
             Physics.Linecast(lineDownStart, lineDownEnd, out downHit, groundLayer);
             Debug.DrawLine(lineDownStart, lineDownEnd);
             if (downHit.collider != null)
@@ -179,14 +207,21 @@ public class PlayerMovement : MonoBehaviour
                 Debug.DrawLine(linefwdstart, linefwdend);
                 if (fwdHit.collider != null)
                 {
+
                     rb.useGravity = false;
                     
                     isHanging = true;
+<<<<<<< Updated upstream
 
                     Vector3 hangPos = new Vector3(fwdHit.point.x + 0.1f , downHit.point.y+ 1.5f, fwdHit.point.z);
 
                    
 
+=======
+                    Vector3 hangPos = new Vector3(fwdHit.point.x + 0.1f , downHit.point.y + 0.2f );
+                    transform.forward = -fwdHit.normal;
+                    transform.DOMove(hangPos, duration).SetEase(easeType);
+>>>>>>> Stashed changes
                 }
             }
         
