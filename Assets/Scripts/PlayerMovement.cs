@@ -10,12 +10,14 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
     public float climbSpeed = 3f;
-    public float aniClimbSpeed = 1f;
+    public float basicMultiplier = 1f;
     
     private bool isGrounded;
     public bool isClimbing;
     public bool isHanging;
     public bool sliding;
+    RaycastHit downHit;
+    RaycastHit fwdHit;
 
 
     [Header("Ground Check")]
@@ -31,13 +33,10 @@ public class PlayerMovement : MonoBehaviour
 
     Animator animator;
     [SerializeField] private LayerMask slopeLayer;
-<<<<<<< Updated upstream
-=======
     [SerializeField] private float hangXoffset;
     [SerializeField] private float hangYoffset;
     [SerializeField] private float duration;
     public Ease easeType = Ease.InOutQuad;
->>>>>>> Stashed changes
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
@@ -66,6 +65,13 @@ public class PlayerMovement : MonoBehaviour
         Climb();
         AnimationControl();
         Slide();
+        LedgeGrab();
+        if (isGrounded)
+        {
+            isHanging = false;
+        }
+
+        
        
         
     }
@@ -77,6 +83,7 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetBool("touchdown", true);
             animator.SetFloat("motion", Mathf.Abs(moveInput.x));
+            animator.SetBool("falling", false);
         }
         if (!isGrounded)
         {
@@ -88,6 +95,7 @@ public class PlayerMovement : MonoBehaviour
             if(rb.linearVelocity.y < -0.2f)
             {
                 animator.SetBool("falling", true);
+                animator.SetTrigger("fallingT");
             }
         }
        
@@ -95,12 +103,21 @@ public class PlayerMovement : MonoBehaviour
        if (isClimbing)
        {
             animator.SetBool("isClimbing", true);
-            animator.SetFloat("climb", aniClimbSpeed * moveInput.y);
+            animator.SetFloat("climb", 1 * moveInput.y);
        }
        else
        {
             animator.SetBool("isClimbing", false);
        }
+
+        if (isHanging)
+        {
+            animator.SetBool("hanging", true);
+        }
+        else
+        {
+            animator.SetBool("hanging", false);
+        }
 
        //Jump trigger is in the jump method
       
@@ -111,13 +128,25 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded)
         {
             rb.linearVelocity = new Vector3(moveInput.x * moveSpeed, rb.linearVelocity.y);
+            isHanging = false;
         }
        
         if (Mathf.Abs(moveInput.x) > 0.1f && !isClimbing)
         {
-            float targetAngle = moveInput.x > 0 ? 90f : -90f;
+            float targetAngle;
+            if (moveInput.x > 0)
+            {
+                targetAngle = 90f;  // Facing right
+               basicMultiplier = 1;
+            }
+            else
+            {
+                targetAngle = -90f; // Facing left
+                basicMultiplier = -1;
+            }
             Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 10f); // Adjust rotation speed
+           
         }
     }
 
@@ -130,25 +159,21 @@ public class PlayerMovement : MonoBehaviour
         if (isClimbing)
         {
             rb.AddForce(6 * moveInput.x, jumpForce+(4*jumpForce*moveInput.y) , 0, ForceMode.Impulse);
-<<<<<<< Updated upstream
-           
         }
-=======
+        if (isHanging)
+        {
+            Vector3 jumpedpos = new Vector3(fwdHit.point.x + 0.1f, downHit.point.y + 0.5f);
+            transform.DOMove(jumpedpos, duration).SetEase(easeType);
+            isHanging = false;
         }
-        //if (isHanging)
-        //{
-        //    Vector3 targetpos = new Vector3 (fwdHit.point.x, downHit.point.y + 0.2f,fwdHit.point.z);
-        //    transform.position = Vector3.Lerp(transform.position, targetpos, 2f);
-            
-        //    isHanging = false;
-        //}
->>>>>>> Stashed changes
+       
        
         animator.SetTrigger("jump");
     }
     void GroundCheck()
     {
         isGrounded = Physics.Raycast(groundCheck.position,-transform.up, groundCheckRadius, groundLayer);
+
     }
     void WallCheck()
     {
@@ -157,11 +182,7 @@ public class PlayerMovement : MonoBehaviour
 
     void gravityControl()
     {
-<<<<<<< Updated upstream
-        if(rb.linearVelocity.y < 0 && !isGrounded)
-=======
         if(rb.linearVelocity.y < 0 && !isGrounded && !isHanging&& !isClimbing)
->>>>>>> Stashed changes
         {
             rb.AddForce(0, -10f, 0);
         }
@@ -188,19 +209,12 @@ public class PlayerMovement : MonoBehaviour
     {
         if(rb.linearVelocity.y < 0.1f)
         {
-<<<<<<< Updated upstream
-            RaycastHit downHit;
-            Vector3 lineDownStart = (transform.position + Vector3.up * 1.5f) + transform.forward*0.5f;
-            Vector3 lineDownEnd = (transform.position + Vector3.up * 0.5f) + transform.forward * 0.5f;
-=======
-            Vector3 lineDownStart = (transform.position + Vector3.up * 3f) + transform.forward*0.4f;
+            Vector3 lineDownStart = (transform.position + Vector3.up * 2.5f) + transform.forward*0.4f;
             Vector3 lineDownEnd = (transform.position + Vector3.up * 0.5f) + transform.forward*0.4f;
->>>>>>> Stashed changes
             Physics.Linecast(lineDownStart, lineDownEnd, out downHit, groundLayer);
             Debug.DrawLine(lineDownStart, lineDownEnd);
             if (downHit.collider != null)
             {
-                RaycastHit fwdHit;
                 Vector3 linefwdstart = new Vector3(transform.position.x, downHit.point.y - 0.1f, transform.position.z);
                 Vector3 linefwdend = new Vector3(transform.position.x, downHit.point.y - 0.1f, transform.position.z) + transform.forward;
                 Physics.Linecast(linefwdstart, linefwdend, out fwdHit, groundLayer);
@@ -209,20 +223,14 @@ public class PlayerMovement : MonoBehaviour
                 {
 
                     rb.useGravity = false;
-                    
+                    Debug.Log("I should be hanging");
                     isHanging = true;
-<<<<<<< Updated upstream
-
-                    Vector3 hangPos = new Vector3(fwdHit.point.x + 0.1f , downHit.point.y+ 1.5f, fwdHit.point.z);
-
-                   
-
-=======
-                    Vector3 hangPos = new Vector3(fwdHit.point.x + 0.1f , downHit.point.y + 0.2f );
+                    Vector3 hangPos = new Vector3(fwdHit.point.x + (hangXoffset * basicMultiplier) , downHit.point.y + hangYoffset );
                     transform.forward = -fwdHit.normal;
-                    transform.DOMove(hangPos, duration).SetEase(easeType);
->>>>>>> Stashed changes
+                    transform.position = hangPos;
                 }
+                
+ 
             }
         
         }
