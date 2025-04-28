@@ -11,11 +11,12 @@ public class Enemy : MonoBehaviour
     public float blockDamage;
     public Transform player;
     Animator animator;
-    bool Dead;
+    public bool Dead, isAttacking;
     float hitmoment;
     float RNG;
     Vector3 playerPos;
     Vector3 enemyPos;
+    float AttackingTime;
 
     void Start()
     {
@@ -32,8 +33,11 @@ public class Enemy : MonoBehaviour
             Time.timeScale = 1f;
         }
         Locomotion();
-        
 
+        if(Time.time > AttackingTime + 1f)
+        {
+            isAttacking = false;
+        }
     }
     public void TakeDamage(int damage)
     {
@@ -55,8 +59,6 @@ public class Enemy : MonoBehaviour
     void Die()
     {
         animator.SetTrigger("Die");
-        float timer = 0 + Time.deltaTime;
-       
     }
 
     void Locomotion()
@@ -86,6 +88,8 @@ public class Enemy : MonoBehaviour
         RandomNumberGenerator();
         if(RNG != 0)
         {
+            AttackingTime = Time.time;
+            isAttacking = true;
             animator.SetTrigger("hit1");
         }
     }

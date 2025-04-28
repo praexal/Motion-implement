@@ -20,7 +20,6 @@ public class PlayerMotion : MonoBehaviour
     public float currentHP;
     public float maxStamina = 50;
     public float blockDamage;
-    public float damage = 10f;
 
 
     [Header("Camera")]
@@ -31,6 +30,7 @@ public class PlayerMotion : MonoBehaviour
     {
         controls = new MasterControls();
         animator = GetComponent<Animator>();
+        currentHP = maxHP;
     }
 
     private void OnEnable()
@@ -95,12 +95,12 @@ public class PlayerMotion : MonoBehaviour
         if (block)
         {
             animator.SetBool("block", true);
-            blockDamage = 5;
+            blockDamage = 0.1f;
         }
         else
         {
             animator.SetBool("block", false);
-            blockDamage = 0;
+            blockDamage = 1;
         }
     }
     void Attack()
@@ -123,11 +123,12 @@ public class PlayerMotion : MonoBehaviour
     void Die()
     {
         animator.SetTrigger("Die");
+        
     }
 
-    void TakeDamage()
+    public void TakeDamage(int damage)
     {
-        currentHP -= damage + blockDamage;
+        currentHP -= damage * blockDamage;
 
         if (currentHP <= 0)
         {
