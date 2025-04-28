@@ -1,4 +1,3 @@
-using Unity.Android.Gradle;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Cinemachine;
@@ -20,10 +19,6 @@ public class PlayerMotion : MonoBehaviour
     public float maxHP = 100;
     public float currentHP;
     public float maxStamina = 50;
-    public float currentStamina;
-    public float staminaRegen;
-    public float attackCost;
-    public float blockCost;
     public float blockDamage;
     public float damage = 10f;
 
@@ -66,8 +61,9 @@ public class PlayerMotion : MonoBehaviour
 
     void StateController()
     {
-        if(attacktime +2f < Time.time)
+        if(attacktime +0.8f < Time.time)
         {
+            hitcount = 0;
             isAttacking = false;
         }
     }
@@ -100,13 +96,11 @@ public class PlayerMotion : MonoBehaviour
         {
             animator.SetBool("block", true);
             blockDamage = 5;
-            blockCost = 5;
         }
         else
         {
             animator.SetBool("block", false);
             blockDamage = 0;
-            blockCost = 0;
         }
     }
     void Attack()
@@ -118,16 +112,13 @@ public class PlayerMotion : MonoBehaviour
             animator.SetTrigger("hit1");
             hitcount = 1;
             attacktime = Time.time;
-            currentStamina -= attackCost;
-
-
         }
         if (hitcount == 1 && (attacktime + attackbuffer < Time.time))
         {
             animator.SetTrigger("hit2");
             hitcount = 0;
-            currentStamina -= attackCost;
         }
+        
     }
     void Die()
     {

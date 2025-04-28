@@ -3,10 +3,17 @@ using UnityEngine;
 public class MySword : MonoBehaviour
 {
     PlayerMotion player;
+    float attacktime;
+
     private void Start()
     {
         GameObject targetObject = GameObject.FindWithTag("Player");
         player = targetObject.GetComponent<PlayerMotion>();
+    }
+
+    private void FixedUpdate()
+    {
+        
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -24,18 +31,6 @@ public class MySword : MonoBehaviour
                 }
             }
         }
-        else
-        {
-            if (other.CompareTag("Enemy"))
-            {
-                 Enemy enemy = other.GetComponent<Enemy>();
-
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(0);
-                }
-            }
-
-        }
+        
     }
 }

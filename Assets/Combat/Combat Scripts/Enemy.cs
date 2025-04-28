@@ -1,38 +1,54 @@
+using System;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    [Header("PlayerStats")]
+    [Header("EnemyStats")]
     public float maxHP = 100;
     public float currentHP;
     public float maxStamina = 50;
-    public float currentStamina;
-    public float staminaRegen;
-    public float attackCost;
-    public float blockCost;
     public float blockDamage;
+    public Transform player;
     Animator animator;
+    bool Dead;
+    float hitmoment;
+    float RNG;
+    Vector3 playerPos;
+    Vector3 enemyPos;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         animator = GetComponent<Animator>();
         currentHP = maxHP;
+        player = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
+        if(Time.time> hitmoment + 0.02f)
+        {
+            Time.timeScale = 1f;
+        }
+        Locomotion();
+        
 
     }
     public void TakeDamage(int damage)
     {
-        currentHP -= damage + blockDamage;
-
-        if (currentHP <= 0)
+        if (!Dead)
         {
-            Die();
+            currentHP -= damage + blockDamage;
+            hitmoment = Time.time;
+            Time.timeScale = 0.1f;
+
+
+            if (currentHP <= 0)
+            {
+                Die();
+                Dead = true;
+            }
         }
     }
 
@@ -40,10 +56,42 @@ public class Enemy : MonoBehaviour
     {
         animator.SetTrigger("Die");
         float timer = 0 + Time.deltaTime;
-        if (timer > 2.5)
-        {
-            animator.enabled = false;
+       
+    }
 
+    void Locomotion()
+    {
+        Vector3 playerPos = player.position;
+        Vector3 enemyPos = transform.position;
+        if (!Dead)
+        {
+            Vector3 direction = (playerPos - enemyPos);
+            direction.y = 0;
+            transform.rotation = Quaternion.LookRotation(direction);
+            Debug.Log(Mathf.Abs(Vector3.Distance(playerPos, enemyPos)));
+            if (Mathf.Abs(Vector3.Distance(playerPos, enemyPos)) > 1.5f)
+            {
+                animator.SetBool("move", true);
+            }
+            if (Mathf.Abs(Vector3.Distance(playerPos, enemyPos)) <= 1.5f)
+            {
+                animator.SetBool("move", false);
+                Attack();
+            }
         }
+    }
+
+    void Attack()
+    {
+        RandomNumberGenerator();
+        if(RNG != 0)
+        {
+            animator.SetTrigger("hit1");
+        }
+    }
+
+    void RandomNumberGenerator()
+    {
+        RNG = UnityEngine.Random.Range(0, 4);
     }
 }
