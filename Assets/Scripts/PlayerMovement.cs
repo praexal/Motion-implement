@@ -164,6 +164,7 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector3 jumpedpos = new Vector3(fwdHit.point.x + 0.1f, downHit.point.y + 0.5f);
             transform.DOMove(jumpedpos, duration).SetEase(easeType);
+            
             isHanging = false;
         }
        
@@ -221,7 +222,6 @@ public class PlayerMovement : MonoBehaviour
                 Debug.DrawLine(linefwdstart, linefwdend);
                 if (fwdHit.collider != null)
                 {
-
                     rb.useGravity = false;
                     Debug.Log("I should be hanging");
                     isHanging = true;

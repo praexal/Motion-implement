@@ -28,7 +28,7 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        if(Time.time> hitmoment + 0.02f)
+        if(Time.time> hitmoment + 0.01f)
         {
             Time.timeScale = 1f;
         }
@@ -45,7 +45,7 @@ public class Enemy : MonoBehaviour
         {
             currentHP -= damage + blockDamage;
             hitmoment = Time.time;
-            Time.timeScale = 0.1f;
+            Time.timeScale = 0.2f;
 
 
             if (currentHP <= 0)

@@ -3097,7 +3097,7 @@ Transform:
   m_GameObject: {fileID: 368383878}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -60, y: 4.5, z: 0}
+  m_LocalPosition: {x: -60.15, y: 4.57, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5926,17 +5926,29 @@ PrefabInstance:
       propertyPath: m_CollisionDetection
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4378127088305294205, guid: 609d1bb021a09504385519eda0fee1b5, type: 3}
+      propertyPath: m_AnimatePhysics
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4378127088305294205, guid: 609d1bb021a09504385519eda0fee1b5, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5396908727637368220, guid: 609d1bb021a09504385519eda0fee1b5, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5625221474350081205, guid: 609d1bb021a09504385519eda0fee1b5, type: 3}
       propertyPath: duration
-      value: 0.2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5625221474350081205, guid: 609d1bb021a09504385519eda0fee1b5, type: 3}
       propertyPath: jumpForce
       value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5625221474350081205, guid: 609d1bb021a09504385519eda0fee1b5, type: 3}
+      propertyPath: climbSpeed
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 5625221474350081205, guid: 609d1bb021a09504385519eda0fee1b5, type: 3}
       propertyPath: hangXoffset
