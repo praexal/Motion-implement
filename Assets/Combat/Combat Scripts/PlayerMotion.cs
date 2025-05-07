@@ -13,7 +13,7 @@ public class PlayerMotion : MonoBehaviour
     float attacktime = 0;
     float attackbuffer = 0.2f;
     float timer;
-    public bool isAttacking;
+    public bool isAttacking, targetlock;
 
     [Header("PlayerStats")]
     public float maxHP = 100;
@@ -25,6 +25,7 @@ public class PlayerMotion : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private CinemachineCamera freeLookCamera;
 
+    public GameObject enemyObj;
 
     void Awake()
     {
@@ -41,6 +42,7 @@ public class PlayerMotion : MonoBehaviour
         controls.Player.Jump.performed += ctx => block = true;
         controls.Player.Jump.canceled += ctx => block = false;
         controls.Player.Attack.performed += ctx => Attack();
+        controls.Player.Look.performed += ctx => TargetLock();
     }
     private void OnDisable()
     {
@@ -50,6 +52,7 @@ public class PlayerMotion : MonoBehaviour
         controls.Player.Jump.performed += ctx => block = true;
         controls.Player.Jump.canceled += ctx => block = false;
         controls.Player.Attack.performed += ctx => Attack();
+        controls.Player.Look.performed += ctx => TargetLock();
 
     }
     private void Update()
@@ -57,38 +60,22 @@ public class PlayerMotion : MonoBehaviour
         Movement();
         Block();
         StateController();
+        CameraControl();
     }
 
     void StateController()
     {
-        if(attacktime +0.8f < Time.time)
+        if (attacktime + 0.8f < Time.time)
         {
             hitcount = 0;
             isAttacking = false;
         }
     }
-    
+
     void Movement()
     {
         animator.SetFloat("motionY", moveInput.y);
         animator.SetFloat("motionX", moveInput.x);
-
-        if (moveInput.magnitude > 0.1f && freeLookCamera != null)
-        {
-            // Get camera forward and right vectors (ignoring Y axis)
-            Vector3 cameraForward = freeLookCamera.transform.forward;
-            Vector3 cameraRight = freeLookCamera.transform.right;
-            cameraForward.y = 0;
-            cameraRight.y = 0;
-            cameraForward.Normalize();
-            cameraRight.Normalize();
-
-            // Calculate movement direction relative to camera
-            Vector3 moveDirection = (cameraForward).normalized;
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-            transform.rotation = targetRotation;
-
-        }
     }
     void Block()
     {
@@ -118,12 +105,12 @@ public class PlayerMotion : MonoBehaviour
             animator.SetTrigger("hit2");
             hitcount = 0;
         }
-        
+
     }
     void Die()
     {
         animator.SetTrigger("Die");
-        
+
     }
 
     public void TakeDamage(int damage)
@@ -135,5 +122,46 @@ public class PlayerMotion : MonoBehaviour
             Die();
         }
     }
+    void CameraControl()
+    {
+        if (!targetlock)
+        {
+            if (moveInput.magnitude > 0.1f && freeLookCamera != null)
+            {
+                // Get camera forward and right vectors (ignoring Y axis)
+                Vector3 cameraForward = freeLookCamera.transform.forward;
+                Vector3 cameraRight = freeLookCamera.transform.right;
+                cameraForward.y = 0;
+                cameraRight.y = 0;
+                cameraForward.Normalize();
+                cameraRight.Normalize();
 
+                // Calculate movement direction relative to camera
+                Vector3 moveDirection = (cameraForward).normalized;
+                Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+                transform.rotation = targetRotation;
+            }
+        }
+        else
+        {
+            Vector3 camfwd = enemyObj.transform.position - transform.position;
+            camfwd.y = 0;
+            Vector3 moveDir = camfwd.normalized;
+            Quaternion targetRot = Quaternion.LookRotation(moveDir);
+            transform.rotation = targetRot;
+        }
+
+    }
+
+    void TargetLock()
+    {
+        if (!targetlock)
+        {
+            targetlock = true;
+        }
+        else
+        {
+            targetlock = false;
+        }
+    }
 }
